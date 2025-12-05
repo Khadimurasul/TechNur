@@ -1,0 +1,43 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database
+server/database.sqlite
+server/database.sqlite-journal
+server/*.db
+server/*.db-journal
+
+# Uploads (keep directory structure but ignore files)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Server logs
+server/logs
+server/*.log
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
