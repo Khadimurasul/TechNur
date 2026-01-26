@@ -5,6 +5,13 @@ import datetime
 import wikipedia
 import webbrowser
 import os
+import subprocess
+import time
+
+try:
+    import pyautogui
+except Exception:
+    pyautogui = None
 
 # Initialize the TTS engine
 def init_engine():
@@ -12,7 +19,6 @@ def init_engine():
         engine = pyttsx3.init()
         voices = engine.getProperty('voices')
         if voices:
-            # Try to find a male voice or just use the first one
             engine.setProperty('voice', voices[0].id)
         engine.setProperty('rate', 175)
         return engine
@@ -29,17 +35,13 @@ def speak(text):
         try:
             engine.say(text)
             engine.runAndWait()
-        except Exception as e:
-            # Fallback for headless environments or errors
+        except Exception:
             pass
 
 def listen(manual_input=False):
-    """Listens for audio input and returns recognized text.
-    If manual_input is True or microphone is unavailable, it uses text input.
-    """
+    """Listens for audio input and returns recognized text."""
     if manual_input:
-        user_input = input("User: ")
-        return user_input.lower()
+        return input("User: ").lower()
 
     r = sr.Recognizer()
     try:
@@ -53,10 +55,7 @@ def listen(manual_input=False):
         print(f"User said: {query}")
         return query.lower()
     except Exception:
-        # If microphone fails or recognition fails, fallback to text input
-        # In a real GUI/CLI app, we might want to prompt the user
-        user_input = input("User (text input): ")
-        return user_input.lower()
+        return input("User (text input): ").lower()
 
 def wish_me():
     """Greets the user based on the time of day."""
@@ -81,7 +80,7 @@ def handle_command(query):
             results = wikipedia.summary(query, sentences=2)
             speak("According to Wikipedia")
             speak(results)
-        except Exception as e:
+        except Exception:
             speak("I couldn't find anything on Wikipedia for that.")
 
     elif 'open youtube' in query:
@@ -99,6 +98,45 @@ def handle_command(query):
     elif 'how are you' in query:
         speak("I am doing well, thank you for asking. I am ready to help.")
 
+    elif 'open notepad' in query or 'write notepad' in query:
+        speak("Opening Notepad, Sir.")
+        if sys.platform == "win32":
+            subprocess.Popen(['notepad.exe'])
+        elif sys.platform == "darwin":
+            subprocess.Popen(['open', '-a', 'TextEdit'])
+        else:
+            # Linux fallback
+            try:
+                subprocess.Popen(['gedit'])
+            except FileNotFoundError:
+                speak("I couldn't find a graphical text editor, but I can try opening nano in a new terminal if you'd like.")
+
+    elif 'type this' in query:
+        speak("What should I type, Sir?")
+        content = listen()
+        if content:
+            speak("Typing now...")
+            if pyautogui:
+                try:
+                    pyautogui.write(content, interval=0.1)
+                except Exception as e:
+                    speak(f"I encountered an error while typing: {e}")
+            else:
+                speak("PyAutoGUI is not available, so I cannot type for you.")
+
+    elif 'take screenshot' in query:
+        speak("Taking a screenshot, Sir.")
+        if pyautogui:
+            try:
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                filename = f"screenshot_{timestamp}.png"
+                pyautogui.screenshot(filename)
+                speak(f"Screenshot saved as {filename}")
+            except Exception as e:
+                speak(f"I couldn't take a screenshot: {e}")
+        else:
+            speak("PyAutoGUI is not available.")
+
     elif 'exit' in query or 'quit' in query or 'bye' in query:
         speak("Goodbye Sir! Have a productive day.")
         sys.exit()
@@ -109,8 +147,6 @@ def handle_command(query):
 def main():
     wish_me()
     while True:
-        # Use manual_input=True if running in an environment without audio
-        # For this demo, we'll try listen() which has a fallback
         query = listen()
         handle_command(query)
 
