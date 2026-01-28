@@ -9,7 +9,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 }
 
 /**
- * Extended FPDI to support rotation
+ * Extended FPDI to support rotation and drawing
  */
 class FpdiExtended extends Fpdi {
     protected $angle = 0;
@@ -65,7 +65,6 @@ class PDFEngine {
 
     /**
      * Extract, reorder, rotate, or delete pages.
-     * $pageActions = [['page' => 1, 'rotation' => 90], ['page' => 3, 'rotation' => 0]]
      */
     public function organize(string $filePath, array $pageActions, string $outputPath): bool {
         try {
@@ -81,7 +80,6 @@ class PDFEngine {
                 $templateId = $pdf->importPage($pageNo);
                 $size = $pdf->getTemplateSize($templateId);
 
-                // If rotated 90 or 270, swap width and height
                 if ($rotation == 90 || $rotation == 270) {
                     $pdf->AddPage($size['width'] > $size['height'] ? 'P' : 'L', [$size['height'], $size['width']]);
                 } else {
@@ -110,7 +108,7 @@ class PDFEngine {
     /**
      * Add text overlay to a PDF.
      */
-    public function annotate(string $filePath, string $text, int $x, int $y, string $outputPath): bool {
+    public function annotate(string $filePath, string $text, int $x, int $y, string $outputPath, int $page = null): bool {
         try {
             $pdf = new FpdiExtended();
             $pageCount = $pdf->setSourceFile($filePath);
@@ -122,17 +120,79 @@ class PDFEngine {
                 $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
                 $pdf->useTemplate($templateId);
 
-                // Add annotation
-                $pdf->SetFont('Arial', 'B', 16);
-                $pdf->SetTextColor(255, 0, 0); // Red
-                $pdf->SetXY($x, $y);
-                $pdf->Write(0, $text);
+                if ($page === null || $page === $pageNo) {
+                    $pdf->SetFont('Arial', 'B', 16);
+                    $pdf->SetTextColor(255, 0, 0);
+                    $pdf->SetXY($x, $y);
+                    $pdf->Write(0, $text);
+                }
             }
 
             $pdf->Output('F', $outputPath);
             return true;
         } catch (\Exception $e) {
             error_log("Annotate Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Overlay rectangles for Whiteout or Redaction.
+     */
+    public function overlayRect(string $filePath, array $rects, string $outputPath): bool {
+        try {
+            $pdf = new FpdiExtended();
+            $pageCount = $pdf->setSourceFile($filePath);
+
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($templateId);
+
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($templateId);
+
+                foreach ($rects as $rect) {
+                    // Only apply to specific page if page is defined, or all pages if not
+                    if (isset($rect['page']) && $rect['page'] != $pageNo) continue;
+
+                    if ($rect['type'] === 'whiteout') {
+                        $pdf->SetFillColor(255, 255, 255);
+                    } else {
+                        $pdf->SetFillColor(0, 0, 0);
+                    }
+                    $pdf->Rect($rect['x'], $rect['y'], $rect['w'], $rect['h'], 'F');
+                }
+            }
+
+            $pdf->Output('F', $outputPath);
+            return true;
+        } catch (\Exception $e) {
+            error_log("OverlayRect Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Strips metadata by re-generating the PDF without extra info.
+     */
+    public function cleanMetadata(string $filePath, string $outputPath): bool {
+        try {
+            $pdf = new FpdiExtended();
+            $pageCount = $pdf->setSourceFile($filePath);
+
+            // FPDF does not set much metadata by default unless explicitly told.
+            // Re-saving with FPDI effectively strips most existing metadata.
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($templateId);
+                $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $pdf->useTemplate($templateId);
+            }
+
+            $pdf->Output('F', $outputPath);
+            return true;
+        } catch (\Exception $e) {
+            error_log("CleanMetadata Error: " . $e->getMessage());
             return false;
         }
     }

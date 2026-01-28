@@ -58,18 +58,32 @@ try {
             $rangeStr = $data['range'];
             $outputPath = $outputDir . ($data['action'] == 'delete' ? 'deleted_' : 'extracted_') . uniqid() . '.pdf';
 
-            // Parse range (e.g., "1-3, 5")
-            $pages = [];
+            $targetPages = [];
             $parts = explode(',', $rangeStr);
             foreach ($parts as $part) {
                 $part = trim($part);
                 if (strpos($part, '-') !== false) {
                     list($start, $end) = explode('-', $part);
                     for ($i = (int)$start; $i <= (int)$end; $i++) {
-                        $pages[] = ['page' => $i, 'rotation' => 0];
+                        $targetPages[] = $i;
                     }
                 } else {
-                    $pages[] = ['page' => (int)$part, 'rotation' => 0];
+                    $targetPages[] = (int)$part;
+                }
+            }
+
+            $pages = [];
+            if ($data['action'] == 'delete') {
+                $temp_pdf = new \setasign\Fpdi\Fpdi();
+                $totalPageCount = $temp_pdf->setSourceFile($file);
+                for ($i = 1; $i <= $totalPageCount; $i++) {
+                    if (!in_array($i, $targetPages)) {
+                        $pages[] = ['page' => $i, 'rotation' => 0];
+                    }
+                }
+            } else {
+                foreach ($targetPages as $p) {
+                    $pages[] = ['page' => $p, 'rotation' => 0];
                 }
             }
 
@@ -86,7 +100,6 @@ try {
             $rotation = (int)$data['rotation'];
             $outputPath = $outputDir . 'rotated_' . uniqid() . '.pdf';
 
-            // Rotate all pages
             $engine_temp = new \setasign\Fpdi\Fpdi();
             $pageCount = $engine_temp->setSourceFile($file);
             $pages = [];
@@ -107,13 +120,49 @@ try {
             $text = $data['text'];
             $x = (int)$data['x'];
             $y = (int)$data['y'];
+            $page = !empty($data['page']) ? (int)$data['page'] : null;
             $outputPath = $outputDir . 'annotated_' . uniqid() . '.pdf';
 
-            if ($engine->annotate($file, $text, $x, $y, $outputPath)) {
+            if ($engine->annotate($file, $text, $x, $y, $outputPath, $page)) {
                 $response['success'] = true;
                 $response['downloadUrl'] = $outputPath;
             } else {
                 $response['error'] = 'Annotation failed';
+            }
+            break;
+
+        case 'whiteout':
+        case 'redact':
+            $file = validatePath($data['file']);
+            $rect = [
+                'type' => $data['action'],
+                'x' => (int)$data['x'],
+                'y' => (int)$data['y'],
+                'w' => (int)$data['w'],
+                'h' => (int)$data['h']
+            ];
+            if (!empty($data['page'])) {
+                $rect['page'] = (int)$data['page'];
+            }
+            $outputPath = $outputDir . $data['action'] . '_' . uniqid() . '.pdf';
+
+            if ($engine->overlayRect($file, [$rect], $outputPath)) {
+                $response['success'] = true;
+                $response['downloadUrl'] = $outputPath;
+            } else {
+                $response['error'] = ucfirst($data['action']) . ' failed';
+            }
+            break;
+
+        case 'remove_metadata':
+            $file = validatePath($data['file']);
+            $outputPath = $outputDir . 'cleaned_' . uniqid() . '.pdf';
+
+            if ($engine->cleanMetadata($file, $outputPath)) {
+                $response['success'] = true;
+                $response['downloadUrl'] = $outputPath;
+            } else {
+                $response['error'] = 'Metadata removal failed';
             }
             break;
 

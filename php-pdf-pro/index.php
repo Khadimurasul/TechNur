@@ -35,13 +35,35 @@ session_start();
     <!-- Ribbon Tabs -->
     <div class="bg-blue-700 text-white flex items-end px-2 space-x-1">
         <div class="ribbon-tab active" data-tab="home">Home</div>
-        <div class="ribbon-tab" data-tab="edit">Edit</div>
-        <div class="ribbon-tab" data-tab="organize">Organize</div>
+        <div class="ribbon-tab" data-tab="convert">Convert</div>
+        <div class="ribbon-tab" data-tab="review">Review</div>
+        <div class="ribbon-tab" data-tab="layout">Page Layout</div>
+        <div class="ribbon-tab" data-tab="forms">Forms</div>
+        <div class="ribbon-tab" data-tab="share">Share</div>
+        <div class="ribbon-tab" data-tab="erase">Erase</div>
         <div class="ribbon-tab" data-tab="protect">Protect</div>
     </div>
 
     <!-- Ribbon Content -->
     <div class="bg-white border-b border-gray-300 shadow-sm p-1.5 flex items-center space-x-1 overflow-x-auto h-[85px]">
+
+        <!-- Sidebar Group (Common) -->
+        <div class="flex space-x-0.5 border-r border-gray-200 pr-2 mr-2">
+            <button class="ribbon-button">
+                <i class="fa-solid fa-hand"></i>
+                <span>Hand</span>
+            </button>
+            <button class="ribbon-button active bg-blue-50">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Edit</span>
+            </button>
+            <div class="flex flex-col items-center">
+                <button class="ribbon-button">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    <span>Zoom <i class="fa-solid fa-caret-down text-[8px]"></i></span>
+                </button>
+            </div>
+        </div>
 
         <!-- Home Tab Content -->
         <div id="tab-home" class="tab-content flex space-x-1">
@@ -64,19 +86,45 @@ session_start();
                 </button>
                 <div class="text-[9px] text-gray-400 mt-auto uppercase text-center w-full">Create</div>
             </div>
-        </div>
-
-        <!-- Edit Tab Content -->
-        <div id="tab-edit" class="tab-content hidden flex space-x-1">
             <button class="ribbon-button" onclick="showAction('annotate')">
                 <i class="fa-solid fa-font"></i>
                 <span>Add Text</span>
             </button>
-            <div class="text-[9px] text-gray-400 mt-auto uppercase">Content</div>
         </div>
 
-        <!-- Organize Tab Content -->
-        <div id="tab-organize" class="tab-content hidden flex space-x-1">
+        <!-- Erase Tab Content -->
+        <div id="tab-erase" class="tab-content hidden flex space-x-1">
+            <div class="flex flex-col items-center border-r border-gray-200 pr-2 mr-2">
+                <button class="ribbon-button" onclick="showAction('whiteout')">
+                    <i class="fa-solid fa-eraser"></i>
+                    <span>Whiteout</span>
+                </button>
+                <div class="text-[9px] text-gray-400 mt-0.5 uppercase">Mask</div>
+            </div>
+            <div class="flex flex-col items-center border-r border-gray-200 pr-2 mr-2">
+                <div class="flex space-x-1">
+                    <button class="ribbon-button" onclick="showAction('redact')">
+                        <i class="fa-solid fa-marker"></i>
+                        <span>Redact</span>
+                    </button>
+                    <button class="ribbon-button opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+                <div class="text-[9px] text-gray-400 mt-0.5 uppercase">Redact</div>
+            </div>
+            <div class="flex flex-col items-center">
+                <button class="ribbon-button" onclick="showAction('remove_metadata')">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Security</span>
+                </button>
+                <div class="text-[9px] text-gray-400 mt-0.5 uppercase text-center">Security</div>
+            </div>
+        </div>
+
+        <!-- Organize Tab (Moved to Layout/Home) -->
+        <div id="tab-layout" class="tab-content hidden flex space-x-1">
             <button class="ribbon-button" onclick="showAction('rotate')">
                 <i class="fa-solid fa-rotate"></i>
                 <span>Rotate</span>
@@ -283,6 +331,51 @@ session_start();
                                         <input type="number" id="anno-y" class="w-full border p-2 rounded text-sm" value="10">
                                     </div>
                                 </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700">Page Number (Optional)</label>
+                                    <input type="number" id="anno-page" class="w-full border p-2 rounded text-sm" placeholder="All pages">
+                                </div>
+                            </div>`;
+                    break;
+                case 'whiteout':
+                case 'redact':
+                    html = `<p class="text-xs text-gray-500 mb-4">${action === 'whiteout' ? 'Mask' : 'Redact'} content with a ${action === 'whiteout' ? 'white' : 'black'} box.</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700">Select File</label>
+                                    <select id="select-file" class="w-full border p-2 rounded text-sm">${currentFiles.map(f => `<option value="${f.path}">${f.name}</option>`).join('')}</select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700">X (mm)</label>
+                                        <input type="number" id="rect-x" class="w-full border p-2 rounded text-sm" value="10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700">Y (mm)</label>
+                                        <input type="number" id="rect-y" class="w-full border p-2 rounded text-sm" value="10">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700">Width (mm)</label>
+                                        <input type="number" id="rect-w" class="w-full border p-2 rounded text-sm" value="50">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700">Height (mm)</label>
+                                        <input type="number" id="rect-h" class="w-full border p-2 rounded text-sm" value="10">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700">Page Number (Optional)</label>
+                                    <input type="number" id="rect-page" class="w-full border p-2 rounded text-sm" placeholder="All pages">
+                                </div>
+                            </div>`;
+                    break;
+                case 'remove_metadata':
+                    html = `<p class="text-xs text-gray-500 mb-4">Strip all metadata from the document.</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700">Select File</label>
+                                    <select id="select-file" class="w-full border p-2 rounded text-sm">${currentFiles.map(f => `<option value="${f.path}">${f.name}</option>`).join('')}</select>
+                                </div>
                             </div>`;
                     break;
             }
@@ -323,6 +416,16 @@ session_start();
                 payload.text = document.getElementById('anno-text').value;
                 payload.x = document.getElementById('anno-x').value;
                 payload.y = document.getElementById('anno-y').value;
+                payload.page = document.getElementById('anno-page').value;
+            } else if (activeAction === 'whiteout' || activeAction === 'redact') {
+                payload.file = document.getElementById('select-file').value;
+                payload.x = document.getElementById('rect-x').value;
+                payload.y = document.getElementById('rect-y').value;
+                payload.w = document.getElementById('rect-w').value;
+                payload.h = document.getElementById('rect-h').value;
+                payload.page = document.getElementById('rect-page').value;
+            } else if (activeAction === 'remove_metadata') {
+                payload.file = document.getElementById('select-file').value;
             }
 
             setStatus('Processing...');
