@@ -41,3 +41,8 @@ server/*.log
 *.njsproj
 *.sln
 *.sw?
+php-pdf-pro/vendor/
+php-pdf-pro/uploads/*
+!php-pdf-pro/uploads/.gitkeep
+php-pdf-pro/output/*
+!php-pdf-pro/output/.gitkeep
