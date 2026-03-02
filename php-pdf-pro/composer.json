@@ -1,0 +1,18 @@
+{
+    "name": "technur/php-pdf-pro",
+    "description": "A NitroPDF-like tool",
+    "authors": [
+        {
+            "name": "TechNur"
+        }
+    ],
+    "require": {
+        "setasign/fpdf": "^1.8",
+        "setasign/fpdi": "^2.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "TechNur\\PhpPdfPro\\": "src/"
+        }
+    }
+}
