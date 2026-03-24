@@ -1,0 +1,70 @@
+/* mmda-revenue/assets/css/style.css */
+
+/* Custom Overrides for the MMDA Revenue Collection System */
+
+:root {
+    --mmda-primary: #ec5b13; /* MMDA Orange */
+    --mmda-bg-light: #f8f6f6;
+    --mmda-bg-dark: #221610;
+}
+
+body {
+    background-color: var(--mmda-bg-light);
+    font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 700 !important;
+    letter-spacing: -0.5px;
+    color: var(--mmda-primary) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-header {
+    background-color: var(--mmda-primary) !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background-color: var(--mmda-primary);
+    border-color: var(--mmda-primary);
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #d44d0e;
+    border-color: #d44d0e;
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* Printing styles for receipts */
+@media print {
+    .navbar, footer, .btn, .alert {
+        display: none !important;
+    }
+    .container {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .card {
+        box-shadow: none !important;
+    }
+}
