@@ -1,0 +1,75 @@
+/* style.css - Professional Agricultural Theme for Puzuri Farms */
+
+:root {
+    --primary-green: #2d5a27;
+    --secondary-green: #4caf50;
+    --earth-brown: #5d4037;
+    --light-bg: #f1f8e9;
+    --accent-yellow: #ffeb3b;
+}
+
+body {
+    background-color: var(--light-bg);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.navbar {
+    background-color: var(--primary-green) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.advice-card {
+    border-left: 5px solid var(--secondary-green);
+}
+
+.weather-icon {
+    width: 100px;
+    height: 100px;
+}
+
+.hero-section {
+    background: linear-gradient(rgba(45, 90, 39, 0.8), rgba(45, 90, 39, 0.8)),
+                url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1000');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 60px 0;
+    margin-bottom: 30px;
+    border-radius: 0 0 50px 50px;
+}
+
+.btn-primary {
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+.btn-primary:hover {
+    background-color: var(--earth-brown);
+    border-color: var(--earth-brown);
+}
+
+.forecast-item {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    margin: 5px;
+}
+
+footer {
+    background-color: var(--earth-brown);
+    color: white;
+    padding: 20px 0;
+    margin-top: 50px;
+}
